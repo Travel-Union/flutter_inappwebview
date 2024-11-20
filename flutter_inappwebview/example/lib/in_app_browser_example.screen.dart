@@ -121,13 +121,11 @@ class _InAppBrowserExampleScreenState extends State<InAppBrowserExampleScreen> {
                           URLRequest(url: WebUri("https://flutter.dev")),
                       settings: InAppBrowserClassSettings(
                         browserSettings: InAppBrowserSettings(
-                            toolbarTopBackgroundColor: Colors.blue,
-                            presentationStyle: ModalPresentationStyle.POPOVER),
+                            hideUrlBar: true,
+                            hideToolbarTop: true,
+                            hidden: true),
                         webViewSettings: InAppWebViewSettings(
-                          isInspectable: kDebugMode,
-                          useShouldOverrideUrlLoading: true,
-                          useOnLoadResource: true,
-                        ),
+                            javaScriptEnabled: true, isInspectable: kDebugMode),
                       ),
                     );
                   },
