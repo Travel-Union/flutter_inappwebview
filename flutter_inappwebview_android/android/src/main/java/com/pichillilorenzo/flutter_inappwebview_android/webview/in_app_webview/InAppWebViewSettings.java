@@ -510,7 +510,7 @@ public class InAppWebViewSettings implements ISettings<InAppWebViewInterface> {
     settings.put("allowBackgroundAudioPlaying", allowBackgroundAudioPlaying);
     settings.put("defaultVideoPoster", defaultVideoPoster);
     settings.put("requestedWithHeaderOriginAllowList",
-            requestedWithHeaderOriginAllowList != null ? new ArrayList<>(requestedWithHeaderOriginAllowList) : null);
+        requestedWithHeaderOriginAllowList != null ? new ArrayList<>(requestedWithHeaderOriginAllowList) : null);
     return settings;
   }
 
@@ -557,7 +557,8 @@ public class InAppWebViewSettings implements ISettings<InAppWebViewInterface> {
       realSettings.put("defaultTextEncodingName", settings.getDefaultTextEncodingName());
       if (WebViewFeature.isFeatureSupported(WebViewFeature.DISABLED_ACTION_MODE_MENU_ITEMS)) {
         realSettings.put("disabledActionModeMenuItems", WebSettingsCompat.getDisabledActionModeMenuItems(settings));
-      } if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         realSettings.put("disabledActionModeMenuItems", settings.getDisabledActionModeMenuItems());
       }
       realSettings.put("fantasyFontFamily", settings.getFantasyFontFamily());
@@ -596,17 +597,17 @@ public class InAppWebViewSettings implements ISettings<InAppWebViewInterface> {
         rendererPriorityPolicy.put("waivedWhenNotVisible", webView.getRendererPriorityWaivedWhenNotVisible());
         realSettings.put("rendererPriorityPolicy", rendererPriorityPolicy);
       }
-      if (WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE)) {
-        realSettings.put("disableDefaultErrorPage", WebSettingsCompat.willSuppressErrorPage(settings));
-      }
-      if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         realSettings.put("algorithmicDarkeningAllowed", WebSettingsCompat.isAlgorithmicDarkeningAllowed(settings));
       }
       if (WebViewFeature.isFeatureSupported(WebViewFeature.ENTERPRISE_AUTHENTICATION_APP_LINK_POLICY)) {
-        realSettings.put("enterpriseAuthenticationAppLinkPolicyEnabled", WebSettingsCompat.getEnterpriseAuthenticationAppLinkPolicyEnabled(settings));
+        realSettings.put("enterpriseAuthenticationAppLinkPolicyEnabled",
+            WebSettingsCompat.getEnterpriseAuthenticationAppLinkPolicyEnabled(settings));
       }
       if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
-        realSettings.put("requestedWithHeaderOriginAllowList", new ArrayList<>(WebSettingsCompat.getRequestedWithHeaderOriginAllowList(settings)));
+        realSettings.put("requestedWithHeaderOriginAllowList",
+            new ArrayList<>(WebSettingsCompat.getRequestedWithHeaderOriginAllowList(settings)));
       }
     }
     return realSettings;
