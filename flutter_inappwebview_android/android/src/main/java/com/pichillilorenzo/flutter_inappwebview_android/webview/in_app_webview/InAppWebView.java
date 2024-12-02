@@ -190,9 +190,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   public InAppWebView(Context context, @NonNull InAppWebViewFlutterPlugin plugin,
-                      @NonNull Object id, @Nullable Integer windowId, InAppWebViewSettings customSettings,
-                      @Nullable Map<String, Object> contextMenu, View containerView,
-                      List<UserScript> userScripts) {
+      @NonNull Object id, @Nullable Integer windowId, InAppWebViewSettings customSettings,
+      @Nullable Map<String, Object> contextMenu, View containerView,
+      List<UserScript> userScripts) {
     super(context, containerView, customSettings.useHybridComposition);
     this.plugin = plugin;
     this.id = id;
@@ -216,16 +216,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     boolean isChromiumWebView = "com.android.webview".equals(packageInfo.packageName) ||
-                                "com.google.android.webview".equals(packageInfo.packageName) ||
-                                "com.android.chrome".equals(packageInfo.packageName);
+        "com.google.android.webview".equals(packageInfo.packageName) ||
+        "com.android.chrome".equals(packageInfo.packageName);
     boolean isChromiumWebViewBugFixed = false;
     if (isChromiumWebView) {
       String versionName = packageInfo.versionName != null ? packageInfo.versionName : "";
       try {
-        int majorVersion = versionName.contains(".") ?
-                Integer.parseInt(versionName.split("\\.")[0]) : 0;
+        int majorVersion = versionName.contains(".") ? Integer.parseInt(versionName.split("\\.")[0]) : 0;
         isChromiumWebViewBugFixed = majorVersion >= 73;
-      } catch (NumberFormatException ignored) {}
+      } catch (NumberFormatException ignored) {
+      }
     }
 
     if (isChromiumWebViewBugFixed || !isChromiumWebView) {
@@ -258,7 +258,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       setWebViewClient(inAppWebViewClient);
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
       inAppWebViewRenderProcessClient = new InAppWebViewRenderProcessClient();
       WebViewCompat.setWebViewRenderProcessClient(this, inAppWebViewRenderProcessClient);
     }
@@ -299,7 +300,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
     if (customSettings.applicationNameForUserAgent != null && !customSettings.applicationNameForUserAgent.isEmpty()) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-        String userAgent = (customSettings.userAgent != null && !customSettings.userAgent.isEmpty()) ? customSettings.userAgent : WebSettings.getDefaultUserAgent(getContext());
+        String userAgent = (customSettings.userAgent != null && !customSettings.userAgent.isEmpty())
+            ? customSettings.userAgent
+            : WebSettings.getDefaultUserAgent(getContext());
         String userAgentWithApplicationName = userAgent + " " + customSettings.applicationNameForUserAgent;
         settings.setUserAgentString(userAgentWithApplicationName);
       }
@@ -333,7 +336,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     settings.setAllowUniversalAccessFromFileURLs(customSettings.allowUniversalAccessFromFileURLs);
     setCacheEnabled(customSettings.cacheEnabled);
     if (customSettings.appCachePath != null && !customSettings.appCachePath.isEmpty() && customSettings.cacheEnabled) {
-      // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+      // removed from Android API 33+
+      // (https://developer.android.com/sdk/api_diff/33/changes)
       // settings.setAppCachePath(customSettings.appCachePath);
       Util.invokeMethodIfExists(settings, "setAppCachePath", customSettings.appCachePath);
     }
@@ -359,12 +363,14 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         settings.setForceDark(customSettings.forceDark);
     }
-    if (customSettings.forceDarkStrategy != null && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+    if (customSettings.forceDarkStrategy != null
+        && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
       WebSettingsCompat.setForceDarkStrategy(settings, customSettings.forceDarkStrategy);
     }
     settings.setGeolocationEnabled(customSettings.geolocationEnabled);
     if (customSettings.layoutAlgorithm != null) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && customSettings.layoutAlgorithm.equals(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING)) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+          && customSettings.layoutAlgorithm.equals(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING)) {
         settings.setLayoutAlgorithm(customSettings.layoutAlgorithm);
       } else {
         settings.setLayoutAlgorithm(customSettings.layoutAlgorithm);
@@ -383,16 +389,18 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     settings.setSerifFontFamily(customSettings.serifFontFamily);
     settings.setStandardFontFamily(customSettings.standardFontFamily);
     if (customSettings.preferredContentMode != null &&
-            customSettings.preferredContentMode == PreferredContentModeOptionType.DESKTOP.toValue()) {
+        customSettings.preferredContentMode == PreferredContentModeOptionType.DESKTOP.toValue()) {
       setDesktopMode(true);
     }
     settings.setSaveFormData(customSettings.saveFormData);
     if (customSettings.incognito)
       setIncognito(true);
-    if (customSettings.hardwareAcceleration)
-      setLayerType(View.LAYER_TYPE_HARDWARE, null);
-    else
-      setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+    if (customSettings.useHybridComposition) {
+      if (customSettings.hardwareAcceleration)
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+      else
+        setLayerType(View.LAYER_TYPE_NONE, null);
+    }
     if (customSettings.regexToCancelSubFramesLoading != null) {
       regexToCancelSubFramesLoadingCompiled = Pattern.compile(customSettings.regexToCancelSubFramesLoading);
     }
@@ -412,37 +420,42 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       if (customSettings.verticalScrollbarThumbColor != null)
-        setVerticalScrollbarThumbDrawable(new ColorDrawable(Color.parseColor(customSettings.verticalScrollbarThumbColor)));
+        setVerticalScrollbarThumbDrawable(
+            new ColorDrawable(Color.parseColor(customSettings.verticalScrollbarThumbColor)));
       if (customSettings.verticalScrollbarTrackColor != null)
-        setVerticalScrollbarTrackDrawable(new ColorDrawable(Color.parseColor(customSettings.verticalScrollbarTrackColor)));
+        setVerticalScrollbarTrackDrawable(
+            new ColorDrawable(Color.parseColor(customSettings.verticalScrollbarTrackColor)));
       if (customSettings.horizontalScrollbarThumbColor != null)
-        setHorizontalScrollbarThumbDrawable(new ColorDrawable(Color.parseColor(customSettings.horizontalScrollbarThumbColor)));
+        setHorizontalScrollbarThumbDrawable(
+            new ColorDrawable(Color.parseColor(customSettings.horizontalScrollbarThumbColor)));
       if (customSettings.horizontalScrollbarTrackColor != null)
-        setHorizontalScrollbarTrackDrawable(new ColorDrawable(Color.parseColor(customSettings.horizontalScrollbarTrackColor)));
+        setHorizontalScrollbarTrackDrawable(
+            new ColorDrawable(Color.parseColor(customSettings.horizontalScrollbarTrackColor)));
     }
 
     setOverScrollMode(customSettings.overScrollMode);
     if (customSettings.networkAvailable != null) {
       setNetworkAvailable(customSettings.networkAvailable);
     }
-    if (customSettings.rendererPriorityPolicy != null && !customSettings.rendererPriorityPolicy.isEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    if (customSettings.rendererPriorityPolicy != null && !customSettings.rendererPriorityPolicy.isEmpty()
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setRendererPriorityPolicy(
-              (int) customSettings.rendererPriorityPolicy.get("rendererRequestedPriority"),
-              (boolean) customSettings.rendererPriorityPolicy.get("waivedWhenNotVisible"));
+          (int) customSettings.rendererPriorityPolicy.get("rendererRequestedPriority"),
+          (boolean) customSettings.rendererPriorityPolicy.get("waivedWhenNotVisible"));
     }
 
-    if (WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE)) {
-      WebSettingsCompat.setWillSuppressErrorPage(settings, customSettings.disableDefaultErrorPage);
-    }
-    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, customSettings.algorithmicDarkeningAllowed);
     }
     if (WebViewFeature.isFeatureSupported(WebViewFeature.ENTERPRISE_AUTHENTICATION_APP_LINK_POLICY)) {
-      WebSettingsCompat.setEnterpriseAuthenticationAppLinkPolicyEnabled(settings, customSettings.enterpriseAuthenticationAppLinkPolicyEnabled);
+      WebSettingsCompat.setEnterpriseAuthenticationAppLinkPolicyEnabled(settings,
+          customSettings.enterpriseAuthenticationAppLinkPolicyEnabled);
     }
     if (customSettings.requestedWithHeaderOriginAllowList != null &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
-      WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, customSettings.requestedWithHeaderOriginAllowList);
+        WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
+      WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings,
+          customSettings.requestedWithHeaderOriginAllowList);
     }
 
     contentBlockerHandler.getRuleList().clear();
@@ -457,7 +470,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       @Override
       public void onFindResultReceived(int activeMatchOrdinal, int numberOfMatches, boolean isDoneCounting) {
         if (findInteractionController != null && findInteractionController.channelDelegate != null)
-          findInteractionController.channelDelegate.onFindResultReceived(activeMatchOrdinal, numberOfMatches, isDoneCounting);
+          findInteractionController.channelDelegate.onFindResultReceived(activeMatchOrdinal, numberOfMatches,
+              isDoneCounting);
         if (channelDelegate != null)
           channelDelegate.onFindResultReceived(activeMatchOrdinal, numberOfMatches, isDoneCounting);
       }
@@ -492,18 +506,20 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         @Override
         public void run() {
           if (floatingContextMenu != null) {
-            evaluateJavascript(PluginScriptsUtil.CHECK_CONTEXT_MENU_SHOULD_BE_HIDDEN_JS_SOURCE, new ValueCallback<String>() {
-              @Override
-              public void onReceiveValue(String value) {
-                if (value == null || value.equals("true")) {
-                  if (floatingContextMenu != null) {
-                    hideContextMenu();
+            evaluateJavascript(PluginScriptsUtil.CHECK_CONTEXT_MENU_SHOULD_BE_HIDDEN_JS_SOURCE,
+                new ValueCallback<String>() {
+                  @Override
+                  public void onReceiveValue(String value) {
+                    if (value == null || value.equals("true")) {
+                      if (floatingContextMenu != null) {
+                        hideContextMenu();
+                      }
+                    } else {
+                      mainLooperHandler.postDelayed(checkContextMenuShouldBeClosedTask,
+                          newCheckContextMenuShouldBeClosedTaskTask);
+                    }
                   }
-                } else {
-                  mainLooperHandler.postDelayed(checkContextMenuShouldBeClosedTask, newCheckContextMenuShouldBeClosedTaskTask);
-                }
-              }
-            });
+                });
           }
         }
       };
@@ -553,9 +569,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     setOnLongClickListener(new OnLongClickListener() {
       @Override
       public boolean onLongClick(View v) {
-        com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult hitTestResult =
-                com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult.fromWebViewHitTestResult(getHitTestResult());
-        if (channelDelegate != null) channelDelegate.onLongPressHitTestResult(hitTestResult);
+        com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult hitTestResult = com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult
+            .fromWebViewHitTestResult(getHitTestResult());
+        if (channelDelegate != null)
+          channelDelegate.onLongPressHitTestResult(hitTestResult);
         return false;
       }
     });
@@ -568,7 +585,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     userContentController.addPluginScript(PrintJS.PRINT_JS_PLUGIN_SCRIPT);
     userContentController.addPluginScript(OnWindowBlurEventJS.ON_WINDOW_BLUR_EVENT_JS_PLUGIN_SCRIPT);
     userContentController.addPluginScript(OnWindowFocusEventJS.ON_WINDOW_FOCUS_EVENT_JS_PLUGIN_SCRIPT);
-    interceptOnlyAsyncAjaxRequestsPluginScript = InterceptAjaxRequestJS.createInterceptOnlyAsyncAjaxRequestsPluginScript(customSettings.interceptOnlyAsyncAjaxRequests);
+    interceptOnlyAsyncAjaxRequestsPluginScript = InterceptAjaxRequestJS
+        .createInterceptOnlyAsyncAjaxRequestsPluginScript(customSettings.interceptOnlyAsyncAjaxRequests);
     if (customSettings.useShouldInterceptAjaxRequest) {
       userContentController.addPluginScript(interceptOnlyAsyncAjaxRequestsPluginScript);
       userContentController.addPluginScript(InterceptAjaxRequestJS.INTERCEPT_AJAX_REQUEST_JS_PLUGIN_SCRIPT);
@@ -580,7 +598,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       userContentController.addPluginScript(OnLoadResourceJS.ON_LOAD_RESOURCE_JS_PLUGIN_SCRIPT);
     }
     if (!customSettings.useHybridComposition) {
-      userContentController.addPluginScript(PluginScriptsUtil.CHECK_GLOBAL_KEY_DOWN_EVENT_TO_HIDE_CONTEXT_MENU_JS_PLUGIN_SCRIPT);
+      userContentController
+          .addPluginScript(PluginScriptsUtil.CHECK_GLOBAL_KEY_DOWN_EVENT_TO_HIDE_CONTEXT_MENU_JS_PLUGIN_SCRIPT);
     }
     this.userContentController.addUserOnlyScripts(this.initialUserOnlyScripts);
   }
@@ -597,7 +616,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       // Disable caching
       settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
-      // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+      // removed from Android API 33+
+      // (https://developer.android.com/sdk/api_diff/33/changes)
       // settings.setAppCacheEnabled(false);
       Util.invokeMethodIfExists(settings, "setAppCacheEnabled", false);
 
@@ -611,7 +631,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     } else {
       settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-      // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+      // removed from Android API 33+
+      // (https://developer.android.com/sdk/api_diff/33/changes)
       // settings.setAppCacheEnabled(true);
       Util.invokeMethodIfExists(settings, "setAppCacheEnabled", true);
 
@@ -625,20 +646,23 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (enabled) {
       Context ctx = getContext();
       if (ctx != null) {
-        // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+        // removed from Android API 33+
+        // (https://developer.android.com/sdk/api_diff/33/changes)
         // settings.setAppCachePath(ctx.getCacheDir().getAbsolutePath());
         Util.invokeMethodIfExists(settings, "setAppCachePath", ctx.getCacheDir().getAbsolutePath());
 
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-        // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+        // removed from Android API 33+
+        // (https://developer.android.com/sdk/api_diff/33/changes)
         // settings.setAppCacheEnabled(true);
         Util.invokeMethodIfExists(settings, "setAppCacheEnabled", true);
       }
     } else {
       settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
-      // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+      // removed from Android API 33+
+      // (https://developer.android.com/sdk/api_diff/33/changes)
       // settings.setAppCacheEnabled(false);
       Util.invokeMethodIfExists(settings, "setAppCacheEnabled", false);
     }
@@ -700,14 +724,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     WebStorage.getInstance().deleteAllData();
   }
 
-  public void takeScreenshot(final @Nullable Map<String, Object> screenshotConfiguration, final MethodChannel.Result result) {
+  public void takeScreenshot(final @Nullable Map<String, Object> screenshotConfiguration,
+      final MethodChannel.Result result) {
     final float pixelDensity = Util.getPixelDensity(getContext());
 
     mainLooperHandler.post(new Runnable() {
       @Override
       public void run() {
         try {
-          Bitmap screenshotBitmap = Bitmap.createBitmap(getMeasuredWidth(), getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+          Bitmap screenshotBitmap = Bitmap.createBitmap(getMeasuredWidth(), getMeasuredHeight(),
+              Bitmap.Config.ARGB_8888);
           Canvas c = new Canvas(screenshotBitmap);
           c.translate(-getScrollX(), -getScrollY());
           draw(c);
@@ -721,14 +747,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
             if (rect != null) {
               int rectX = (int) Math.floor(rect.get("x") * pixelDensity + 0.5);
               int rectY = (int) Math.floor(rect.get("y") * pixelDensity + 0.5);
-              int rectWidth = Math.min(screenshotBitmap.getWidth(), (int) Math.floor(rect.get("width") * pixelDensity + 0.5));
-              int rectHeight = Math.min(screenshotBitmap.getHeight(), (int) Math.floor(rect.get("height") * pixelDensity + 0.5));
+              int rectWidth = Math.min(screenshotBitmap.getWidth(),
+                  (int) Math.floor(rect.get("width") * pixelDensity + 0.5));
+              int rectHeight = Math.min(screenshotBitmap.getHeight(),
+                  (int) Math.floor(rect.get("height") * pixelDensity + 0.5));
               screenshotBitmap = Bitmap.createBitmap(
-                      screenshotBitmap,
-                      rectX,
-                      rectY,
-                      rectWidth,
-                      rectHeight);
+                  screenshotBitmap,
+                  rectX,
+                  rectY,
+                  rectWidth,
+                  rectHeight);
             }
 
             Double snapshotWidth = (Double) screenshotConfiguration.get("snapshotWidth");
@@ -749,9 +777,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
           }
 
           screenshotBitmap.compress(
-                  compressFormat,
-                  quality,
-                  byteArrayOutputStream);
+              compressFormat,
+              quality,
+              byteArrayOutputStream);
 
           try {
             byteArrayOutputStream.close();
@@ -774,72 +802,85 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
     WebSettings settings = getSettings();
 
-    if (newSettingsMap.get("javaScriptEnabled") != null && customSettings.javaScriptEnabled != newCustomSettings.javaScriptEnabled)
+    if (newSettingsMap.get("javaScriptEnabled") != null
+        && customSettings.javaScriptEnabled != newCustomSettings.javaScriptEnabled)
       settings.setJavaScriptEnabled(newCustomSettings.javaScriptEnabled);
 
-    if (newSettingsMap.get("useShouldInterceptAjaxRequest") != null && customSettings.useShouldInterceptAjaxRequest != newCustomSettings.useShouldInterceptAjaxRequest) {
+    if (newSettingsMap.get("useShouldInterceptAjaxRequest") != null
+        && customSettings.useShouldInterceptAjaxRequest != newCustomSettings.useShouldInterceptAjaxRequest) {
       enablePluginScriptAtRuntime(
-              InterceptAjaxRequestJS.FLAG_VARIABLE_FOR_SHOULD_INTERCEPT_AJAX_REQUEST_JS_SOURCE,
-              newCustomSettings.useShouldInterceptAjaxRequest,
-              InterceptAjaxRequestJS.INTERCEPT_AJAX_REQUEST_JS_PLUGIN_SCRIPT
-      );
+          InterceptAjaxRequestJS.FLAG_VARIABLE_FOR_SHOULD_INTERCEPT_AJAX_REQUEST_JS_SOURCE,
+          newCustomSettings.useShouldInterceptAjaxRequest,
+          InterceptAjaxRequestJS.INTERCEPT_AJAX_REQUEST_JS_PLUGIN_SCRIPT);
     }
 
-    if (newSettingsMap.get("interceptOnlyAsyncAjaxRequests") != null && customSettings.interceptOnlyAsyncAjaxRequests != newCustomSettings.interceptOnlyAsyncAjaxRequests) {
+    if (newSettingsMap.get("interceptOnlyAsyncAjaxRequests") != null
+        && customSettings.interceptOnlyAsyncAjaxRequests != newCustomSettings.interceptOnlyAsyncAjaxRequests) {
       enablePluginScriptAtRuntime(
-              InterceptAjaxRequestJS.FLAG_VARIABLE_FOR_INTERCEPT_ONLY_ASYNC_AJAX_REQUESTS_JS_SOURCE,
-              newCustomSettings.interceptOnlyAsyncAjaxRequests,
-              interceptOnlyAsyncAjaxRequestsPluginScript
-      );
+          InterceptAjaxRequestJS.FLAG_VARIABLE_FOR_INTERCEPT_ONLY_ASYNC_AJAX_REQUESTS_JS_SOURCE,
+          newCustomSettings.interceptOnlyAsyncAjaxRequests,
+          interceptOnlyAsyncAjaxRequestsPluginScript);
     }
 
-    if (newSettingsMap.get("useShouldInterceptFetchRequest") != null && customSettings.useShouldInterceptFetchRequest != newCustomSettings.useShouldInterceptFetchRequest) {
+    if (newSettingsMap.get("useShouldInterceptFetchRequest") != null
+        && customSettings.useShouldInterceptFetchRequest != newCustomSettings.useShouldInterceptFetchRequest) {
       enablePluginScriptAtRuntime(
-              InterceptFetchRequestJS.FLAG_VARIABLE_FOR_SHOULD_INTERCEPT_FETCH_REQUEST_JS_SOURCE,
-              newCustomSettings.useShouldInterceptFetchRequest,
-              InterceptFetchRequestJS.INTERCEPT_FETCH_REQUEST_JS_PLUGIN_SCRIPT
-      );
+          InterceptFetchRequestJS.FLAG_VARIABLE_FOR_SHOULD_INTERCEPT_FETCH_REQUEST_JS_SOURCE,
+          newCustomSettings.useShouldInterceptFetchRequest,
+          InterceptFetchRequestJS.INTERCEPT_FETCH_REQUEST_JS_PLUGIN_SCRIPT);
     }
 
-    if (newSettingsMap.get("useOnLoadResource") != null && customSettings.useOnLoadResource != newCustomSettings.useOnLoadResource) {
+    if (newSettingsMap.get("useOnLoadResource") != null
+        && customSettings.useOnLoadResource != newCustomSettings.useOnLoadResource) {
       enablePluginScriptAtRuntime(
-              OnLoadResourceJS.FLAG_VARIABLE_FOR_ON_LOAD_RESOURCE_JS_SOURCE,
-              newCustomSettings.useOnLoadResource,
-              OnLoadResourceJS.ON_LOAD_RESOURCE_JS_PLUGIN_SCRIPT
-      );
+          OnLoadResourceJS.FLAG_VARIABLE_FOR_ON_LOAD_RESOURCE_JS_SOURCE,
+          newCustomSettings.useOnLoadResource,
+          OnLoadResourceJS.ON_LOAD_RESOURCE_JS_PLUGIN_SCRIPT);
     }
 
-    if (newSettingsMap.get("javaScriptCanOpenWindowsAutomatically") != null && customSettings.javaScriptCanOpenWindowsAutomatically != newCustomSettings.javaScriptCanOpenWindowsAutomatically)
+    if (newSettingsMap.get("javaScriptCanOpenWindowsAutomatically") != null
+        && customSettings.javaScriptCanOpenWindowsAutomatically != newCustomSettings.javaScriptCanOpenWindowsAutomatically)
       settings.setJavaScriptCanOpenWindowsAutomatically(newCustomSettings.javaScriptCanOpenWindowsAutomatically);
 
-    if (newSettingsMap.get("builtInZoomControls") != null && customSettings.builtInZoomControls != newCustomSettings.builtInZoomControls)
+    if (newSettingsMap.get("builtInZoomControls") != null
+        && customSettings.builtInZoomControls != newCustomSettings.builtInZoomControls)
       settings.setBuiltInZoomControls(newCustomSettings.builtInZoomControls);
 
-    if (newSettingsMap.get("displayZoomControls") != null && customSettings.displayZoomControls != newCustomSettings.displayZoomControls)
+    if (newSettingsMap.get("displayZoomControls") != null
+        && customSettings.displayZoomControls != newCustomSettings.displayZoomControls)
       settings.setDisplayZoomControls(newCustomSettings.displayZoomControls);
 
-    if (newSettingsMap.get("safeBrowsingEnabled") != null && customSettings.safeBrowsingEnabled != newCustomSettings.safeBrowsingEnabled) {
+    if (newSettingsMap.get("safeBrowsingEnabled") != null
+        && customSettings.safeBrowsingEnabled != newCustomSettings.safeBrowsingEnabled) {
       if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE))
         WebSettingsCompat.setSafeBrowsingEnabled(settings, newCustomSettings.safeBrowsingEnabled);
       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
         settings.setSafeBrowsingEnabled(newCustomSettings.safeBrowsingEnabled);
     }
 
-    if (newSettingsMap.get("mediaPlaybackRequiresUserGesture") != null && customSettings.mediaPlaybackRequiresUserGesture != newCustomSettings.mediaPlaybackRequiresUserGesture)
+    if (newSettingsMap.get("mediaPlaybackRequiresUserGesture") != null
+        && customSettings.mediaPlaybackRequiresUserGesture != newCustomSettings.mediaPlaybackRequiresUserGesture)
       settings.setMediaPlaybackRequiresUserGesture(newCustomSettings.mediaPlaybackRequiresUserGesture);
 
-    if (newSettingsMap.get("databaseEnabled") != null && customSettings.databaseEnabled != newCustomSettings.databaseEnabled)
+    if (newSettingsMap.get("databaseEnabled") != null
+        && customSettings.databaseEnabled != newCustomSettings.databaseEnabled)
       settings.setDatabaseEnabled(newCustomSettings.databaseEnabled);
 
-    if (newSettingsMap.get("domStorageEnabled") != null && customSettings.domStorageEnabled != newCustomSettings.domStorageEnabled)
+    if (newSettingsMap.get("domStorageEnabled") != null
+        && customSettings.domStorageEnabled != newCustomSettings.domStorageEnabled)
       settings.setDomStorageEnabled(newCustomSettings.domStorageEnabled);
 
-    if (newSettingsMap.get("userAgent") != null && !customSettings.userAgent.equals(newCustomSettings.userAgent) && !newCustomSettings.userAgent.isEmpty())
+    if (newSettingsMap.get("userAgent") != null && !customSettings.userAgent.equals(newCustomSettings.userAgent)
+        && !newCustomSettings.userAgent.isEmpty())
       settings.setUserAgentString(newCustomSettings.userAgent);
 
-    if (newSettingsMap.get("applicationNameForUserAgent") != null && !customSettings.applicationNameForUserAgent.equals(newCustomSettings.applicationNameForUserAgent) && !newCustomSettings.applicationNameForUserAgent.isEmpty()) {
+    if (newSettingsMap.get("applicationNameForUserAgent") != null
+        && !customSettings.applicationNameForUserAgent.equals(newCustomSettings.applicationNameForUserAgent)
+        && !newCustomSettings.applicationNameForUserAgent.isEmpty()) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-        String userAgent = (newCustomSettings.userAgent != null && !newCustomSettings.userAgent.isEmpty()) ? newCustomSettings.userAgent : WebSettings.getDefaultUserAgent(getContext());
+        String userAgent = (newCustomSettings.userAgent != null && !newCustomSettings.userAgent.isEmpty())
+            ? newCustomSettings.userAgent
+            : WebSettings.getDefaultUserAgent(getContext());
         String userAgentWithApplicationName = userAgent + " " + customSettings.applicationNameForUserAgent;
         settings.setUserAgentString(userAgentWithApplicationName);
       }
@@ -850,10 +891,13 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     else if (newSettingsMap.get("clearSessionCache") != null && newCustomSettings.clearSessionCache)
       CookieManager.getInstance().removeSessionCookie();
 
-    if (newSettingsMap.get("thirdPartyCookiesEnabled") != null && customSettings.thirdPartyCookiesEnabled != newCustomSettings.thirdPartyCookiesEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+    if (newSettingsMap.get("thirdPartyCookiesEnabled") != null
+        && customSettings.thirdPartyCookiesEnabled != newCustomSettings.thirdPartyCookiesEnabled
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       CookieManager.getInstance().setAcceptThirdPartyCookies(this, newCustomSettings.thirdPartyCookiesEnabled);
 
-    if (newSettingsMap.get("useWideViewPort") != null && customSettings.useWideViewPort != newCustomSettings.useWideViewPort)
+    if (newSettingsMap.get("useWideViewPort") != null
+        && customSettings.useWideViewPort != newCustomSettings.useWideViewPort)
       settings.setUseWideViewPort(newCustomSettings.useWideViewPort);
 
     if (newSettingsMap.get("supportZoom") != null && customSettings.supportZoom != newCustomSettings.supportZoom)
@@ -862,13 +906,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (newSettingsMap.get("textZoom") != null && !customSettings.textZoom.equals(newCustomSettings.textZoom))
       settings.setTextZoom(newCustomSettings.textZoom);
 
-    if (newSettingsMap.get("verticalScrollBarEnabled") != null && customSettings.verticalScrollBarEnabled != newCustomSettings.verticalScrollBarEnabled)
+    if (newSettingsMap.get("verticalScrollBarEnabled") != null
+        && customSettings.verticalScrollBarEnabled != newCustomSettings.verticalScrollBarEnabled)
       setVerticalScrollBarEnabled(newCustomSettings.verticalScrollBarEnabled);
 
-    if (newSettingsMap.get("horizontalScrollBarEnabled") != null && customSettings.horizontalScrollBarEnabled != newCustomSettings.horizontalScrollBarEnabled)
+    if (newSettingsMap.get("horizontalScrollBarEnabled") != null
+        && customSettings.horizontalScrollBarEnabled != newCustomSettings.horizontalScrollBarEnabled)
       setHorizontalScrollBarEnabled(newCustomSettings.horizontalScrollBarEnabled);
 
-    if (newSettingsMap.get("transparentBackground") != null && customSettings.transparentBackground != newCustomSettings.transparentBackground) {
+    if (newSettingsMap.get("transparentBackground") != null
+        && customSettings.transparentBackground != newCustomSettings.transparentBackground) {
       if (newCustomSettings.transparentBackground) {
         setBackgroundColor(Color.TRANSPARENT);
       } else {
@@ -877,13 +924,16 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-      if (newSettingsMap.get("mixedContentMode") != null && (customSettings.mixedContentMode == null || !customSettings.mixedContentMode.equals(newCustomSettings.mixedContentMode)))
+      if (newSettingsMap.get("mixedContentMode") != null && (customSettings.mixedContentMode == null
+          || !customSettings.mixedContentMode.equals(newCustomSettings.mixedContentMode)))
         settings.setMixedContentMode(newCustomSettings.mixedContentMode);
 
-    if (newSettingsMap.get("supportMultipleWindows") != null && customSettings.supportMultipleWindows != newCustomSettings.supportMultipleWindows)
+    if (newSettingsMap.get("supportMultipleWindows") != null
+        && customSettings.supportMultipleWindows != newCustomSettings.supportMultipleWindows)
       settings.setSupportMultipleWindows(newCustomSettings.supportMultipleWindows);
 
-    if (newSettingsMap.get("useOnDownloadStart") != null && customSettings.useOnDownloadStart != newCustomSettings.useOnDownloadStart) {
+    if (newSettingsMap.get("useOnDownloadStart") != null
+        && customSettings.useOnDownloadStart != newCustomSettings.useOnDownloadStart) {
       if (newCustomSettings.useOnDownloadStart) {
         setDownloadListener(new DownloadStartListener());
       } else {
@@ -891,50 +941,62 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       }
     }
 
-    if (newSettingsMap.get("allowContentAccess") != null && customSettings.allowContentAccess != newCustomSettings.allowContentAccess)
+    if (newSettingsMap.get("allowContentAccess") != null
+        && customSettings.allowContentAccess != newCustomSettings.allowContentAccess)
       settings.setAllowContentAccess(newCustomSettings.allowContentAccess);
 
-    if (newSettingsMap.get("allowFileAccess") != null && customSettings.allowFileAccess != newCustomSettings.allowFileAccess)
+    if (newSettingsMap.get("allowFileAccess") != null
+        && customSettings.allowFileAccess != newCustomSettings.allowFileAccess)
       settings.setAllowFileAccess(newCustomSettings.allowFileAccess);
 
-    if (newSettingsMap.get("allowFileAccessFromFileURLs") != null && customSettings.allowFileAccessFromFileURLs != newCustomSettings.allowFileAccessFromFileURLs)
+    if (newSettingsMap.get("allowFileAccessFromFileURLs") != null
+        && customSettings.allowFileAccessFromFileURLs != newCustomSettings.allowFileAccessFromFileURLs)
       settings.setAllowFileAccessFromFileURLs(newCustomSettings.allowFileAccessFromFileURLs);
 
-    if (newSettingsMap.get("allowUniversalAccessFromFileURLs") != null && customSettings.allowUniversalAccessFromFileURLs != newCustomSettings.allowUniversalAccessFromFileURLs)
+    if (newSettingsMap.get("allowUniversalAccessFromFileURLs") != null
+        && customSettings.allowUniversalAccessFromFileURLs != newCustomSettings.allowUniversalAccessFromFileURLs)
       settings.setAllowUniversalAccessFromFileURLs(newCustomSettings.allowUniversalAccessFromFileURLs);
 
     if (newSettingsMap.get("cacheEnabled") != null && customSettings.cacheEnabled != newCustomSettings.cacheEnabled)
       setCacheEnabled(newCustomSettings.cacheEnabled);
 
-    if (newSettingsMap.get("appCachePath") != null && (customSettings.appCachePath == null || !customSettings.appCachePath.equals(newCustomSettings.appCachePath))) {
-      // removed from Android API 33+ (https://developer.android.com/sdk/api_diff/33/changes)
+    if (newSettingsMap.get("appCachePath") != null && (customSettings.appCachePath == null
+        || !customSettings.appCachePath.equals(newCustomSettings.appCachePath))) {
+      // removed from Android API 33+
+      // (https://developer.android.com/sdk/api_diff/33/changes)
       // settings.setAppCachePath(newCustomSettings.appCachePath);
       Util.invokeMethodIfExists(settings, "setAppCachePath", newCustomSettings.appCachePath);
     }
 
-    if (newSettingsMap.get("blockNetworkImage") != null && customSettings.blockNetworkImage != newCustomSettings.blockNetworkImage)
+    if (newSettingsMap.get("blockNetworkImage") != null
+        && customSettings.blockNetworkImage != newCustomSettings.blockNetworkImage)
       settings.setBlockNetworkImage(newCustomSettings.blockNetworkImage);
 
-    if (newSettingsMap.get("blockNetworkLoads") != null && customSettings.blockNetworkLoads != newCustomSettings.blockNetworkLoads)
+    if (newSettingsMap.get("blockNetworkLoads") != null
+        && customSettings.blockNetworkLoads != newCustomSettings.blockNetworkLoads)
       settings.setBlockNetworkLoads(newCustomSettings.blockNetworkLoads);
 
     if (newSettingsMap.get("cacheMode") != null && !customSettings.cacheMode.equals(newCustomSettings.cacheMode))
       settings.setCacheMode(newCustomSettings.cacheMode);
 
-    if (newSettingsMap.get("cursiveFontFamily") != null && !customSettings.cursiveFontFamily.equals(newCustomSettings.cursiveFontFamily))
+    if (newSettingsMap.get("cursiveFontFamily") != null
+        && !customSettings.cursiveFontFamily.equals(newCustomSettings.cursiveFontFamily))
       settings.setCursiveFontFamily(newCustomSettings.cursiveFontFamily);
 
-    if (newSettingsMap.get("defaultFixedFontSize") != null && !customSettings.defaultFixedFontSize.equals(newCustomSettings.defaultFixedFontSize))
+    if (newSettingsMap.get("defaultFixedFontSize") != null
+        && !customSettings.defaultFixedFontSize.equals(newCustomSettings.defaultFixedFontSize))
       settings.setDefaultFixedFontSize(newCustomSettings.defaultFixedFontSize);
 
-    if (newSettingsMap.get("defaultFontSize") != null && !customSettings.defaultFontSize.equals(newCustomSettings.defaultFontSize))
+    if (newSettingsMap.get("defaultFontSize") != null
+        && !customSettings.defaultFontSize.equals(newCustomSettings.defaultFontSize))
       settings.setDefaultFontSize(newCustomSettings.defaultFontSize);
 
-    if (newSettingsMap.get("defaultTextEncodingName") != null && !customSettings.defaultTextEncodingName.equals(newCustomSettings.defaultTextEncodingName))
+    if (newSettingsMap.get("defaultTextEncodingName") != null
+        && !customSettings.defaultTextEncodingName.equals(newCustomSettings.defaultTextEncodingName))
       settings.setDefaultTextEncodingName(newCustomSettings.defaultTextEncodingName);
 
     if (newSettingsMap.get("disabledActionModeMenuItems") != null &&
-            (customSettings.disabledActionModeMenuItems == null ||
+        (customSettings.disabledActionModeMenuItems == null ||
             !customSettings.disabledActionModeMenuItems.equals(newCustomSettings.disabledActionModeMenuItems))) {
       if (WebViewFeature.isFeatureSupported(WebViewFeature.DISABLED_ACTION_MODE_MENU_ITEMS))
         WebSettingsCompat.setDisabledActionModeMenuItems(settings, newCustomSettings.disabledActionModeMenuItems);
@@ -942,10 +1004,12 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         settings.setDisabledActionModeMenuItems(newCustomSettings.disabledActionModeMenuItems);
     }
 
-    if (newSettingsMap.get("fantasyFontFamily") != null && !customSettings.fantasyFontFamily.equals(newCustomSettings.fantasyFontFamily))
+    if (newSettingsMap.get("fantasyFontFamily") != null
+        && !customSettings.fantasyFontFamily.equals(newCustomSettings.fantasyFontFamily))
       settings.setFantasyFontFamily(newCustomSettings.fantasyFontFamily);
 
-    if (newSettingsMap.get("fixedFontFamily") != null && !customSettings.fixedFontFamily.equals(newCustomSettings.fixedFontFamily))
+    if (newSettingsMap.get("fixedFontFamily") != null
+        && !customSettings.fixedFontFamily.equals(newCustomSettings.fixedFontFamily))
       settings.setFixedFontFamily(newCustomSettings.fixedFontFamily);
 
     if (newSettingsMap.get("forceDark") != null && !customSettings.forceDark.equals(newCustomSettings.forceDark)) {
@@ -956,57 +1020,71 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     if (newSettingsMap.get("forceDarkStrategy") != null &&
-            !customSettings.forceDarkStrategy.equals(newCustomSettings.forceDarkStrategy) &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+        !customSettings.forceDarkStrategy.equals(newCustomSettings.forceDarkStrategy) &&
+        WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
       WebSettingsCompat.setForceDarkStrategy(settings, newCustomSettings.forceDarkStrategy);
     }
 
-    if (newSettingsMap.get("geolocationEnabled") != null && customSettings.geolocationEnabled != newCustomSettings.geolocationEnabled)
+    if (newSettingsMap.get("geolocationEnabled") != null
+        && customSettings.geolocationEnabled != newCustomSettings.geolocationEnabled)
       settings.setGeolocationEnabled(newCustomSettings.geolocationEnabled);
 
-    if (newSettingsMap.get("layoutAlgorithm") != null && customSettings.layoutAlgorithm != newCustomSettings.layoutAlgorithm) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && newCustomSettings.layoutAlgorithm.equals(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING)) {
+    if (newSettingsMap.get("layoutAlgorithm") != null
+        && customSettings.layoutAlgorithm != newCustomSettings.layoutAlgorithm) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+          && newCustomSettings.layoutAlgorithm.equals(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING)) {
         settings.setLayoutAlgorithm(newCustomSettings.layoutAlgorithm);
       } else {
         settings.setLayoutAlgorithm(newCustomSettings.layoutAlgorithm);
       }
     }
 
-    if (newSettingsMap.get("loadWithOverviewMode") != null && customSettings.loadWithOverviewMode != newCustomSettings.loadWithOverviewMode)
+    if (newSettingsMap.get("loadWithOverviewMode") != null
+        && customSettings.loadWithOverviewMode != newCustomSettings.loadWithOverviewMode)
       settings.setLoadWithOverviewMode(newCustomSettings.loadWithOverviewMode);
 
-    if (newSettingsMap.get("loadsImagesAutomatically") != null && customSettings.loadsImagesAutomatically != newCustomSettings.loadsImagesAutomatically)
+    if (newSettingsMap.get("loadsImagesAutomatically") != null
+        && customSettings.loadsImagesAutomatically != newCustomSettings.loadsImagesAutomatically)
       settings.setLoadsImagesAutomatically(newCustomSettings.loadsImagesAutomatically);
 
-    if (newSettingsMap.get("minimumFontSize") != null && !customSettings.minimumFontSize.equals(newCustomSettings.minimumFontSize))
+    if (newSettingsMap.get("minimumFontSize") != null
+        && !customSettings.minimumFontSize.equals(newCustomSettings.minimumFontSize))
       settings.setMinimumFontSize(newCustomSettings.minimumFontSize);
 
-    if (newSettingsMap.get("minimumLogicalFontSize") != null && !customSettings.minimumLogicalFontSize.equals(newCustomSettings.minimumLogicalFontSize))
+    if (newSettingsMap.get("minimumLogicalFontSize") != null
+        && !customSettings.minimumLogicalFontSize.equals(newCustomSettings.minimumLogicalFontSize))
       settings.setMinimumLogicalFontSize(newCustomSettings.minimumLogicalFontSize);
 
-    if (newSettingsMap.get("initialScale") != null && !customSettings.initialScale.equals(newCustomSettings.initialScale))
+    if (newSettingsMap.get("initialScale") != null
+        && !customSettings.initialScale.equals(newCustomSettings.initialScale))
       setInitialScale(newCustomSettings.initialScale);
 
-    if (newSettingsMap.get("needInitialFocus") != null && customSettings.needInitialFocus != newCustomSettings.needInitialFocus)
+    if (newSettingsMap.get("needInitialFocus") != null
+        && customSettings.needInitialFocus != newCustomSettings.needInitialFocus)
       settings.setNeedInitialFocus(newCustomSettings.needInitialFocus);
 
-    if (newSettingsMap.get("offscreenPreRaster") != null && customSettings.offscreenPreRaster != newCustomSettings.offscreenPreRaster) {
+    if (newSettingsMap.get("offscreenPreRaster") != null
+        && customSettings.offscreenPreRaster != newCustomSettings.offscreenPreRaster) {
       if (WebViewFeature.isFeatureSupported(WebViewFeature.OFF_SCREEN_PRERASTER))
         WebSettingsCompat.setOffscreenPreRaster(settings, newCustomSettings.offscreenPreRaster);
       else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         settings.setOffscreenPreRaster(newCustomSettings.offscreenPreRaster);
     }
 
-    if (newSettingsMap.get("sansSerifFontFamily") != null && !customSettings.sansSerifFontFamily.equals(newCustomSettings.sansSerifFontFamily))
+    if (newSettingsMap.get("sansSerifFontFamily") != null
+        && !customSettings.sansSerifFontFamily.equals(newCustomSettings.sansSerifFontFamily))
       settings.setSansSerifFontFamily(newCustomSettings.sansSerifFontFamily);
 
-    if (newSettingsMap.get("serifFontFamily") != null && !customSettings.serifFontFamily.equals(newCustomSettings.serifFontFamily))
+    if (newSettingsMap.get("serifFontFamily") != null
+        && !customSettings.serifFontFamily.equals(newCustomSettings.serifFontFamily))
       settings.setSerifFontFamily(newCustomSettings.serifFontFamily);
 
-    if (newSettingsMap.get("standardFontFamily") != null && !customSettings.standardFontFamily.equals(newCustomSettings.standardFontFamily))
+    if (newSettingsMap.get("standardFontFamily") != null
+        && !customSettings.standardFontFamily.equals(newCustomSettings.standardFontFamily))
       settings.setStandardFontFamily(newCustomSettings.standardFontFamily);
 
-    if (newSettingsMap.get("preferredContentMode") != null && !customSettings.preferredContentMode.equals(newCustomSettings.preferredContentMode)) {
+    if (newSettingsMap.get("preferredContentMode") != null
+        && !customSettings.preferredContentMode.equals(newCustomSettings.preferredContentMode)) {
       switch (fromValue(newCustomSettings.preferredContentMode)) {
         case DESKTOP:
           setDesktopMode(true);
@@ -1024,14 +1102,18 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (newSettingsMap.get("incognito") != null && customSettings.incognito != newCustomSettings.incognito)
       setIncognito(newCustomSettings.incognito);
 
-    if (newSettingsMap.get("hardwareAcceleration") != null && customSettings.hardwareAcceleration != newCustomSettings.hardwareAcceleration) {
-      if (newCustomSettings.hardwareAcceleration)
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-      else
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+    if (customSettings.useHybridComposition) {
+      if (newSettingsMap.get("hardwareAcceleration") != null
+          && customSettings.hardwareAcceleration != newCustomSettings.hardwareAcceleration) {
+        if (newCustomSettings.hardwareAcceleration)
+          setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        else
+          setLayerType(View.LAYER_TYPE_NONE, null);
+      }
     }
 
-    if (newSettingsMap.get("regexToCancelSubFramesLoading") != null && (customSettings.regexToCancelSubFramesLoading == null ||
+    if (newSettingsMap.get("regexToCancelSubFramesLoading") != null
+        && (customSettings.regexToCancelSubFramesLoading == null ||
             !customSettings.regexToCancelSubFramesLoading.equals(newCustomSettings.regexToCancelSubFramesLoading))) {
       if (newCustomSettings.regexToCancelSubFramesLoading == null)
         regexToCancelSubFramesLoadingCompiled = null;
@@ -1049,77 +1131,100 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       }
     }
 
-    if (newSettingsMap.get("scrollBarStyle") != null && !customSettings.scrollBarStyle.equals(newCustomSettings.scrollBarStyle))
+    if (newSettingsMap.get("scrollBarStyle") != null
+        && !customSettings.scrollBarStyle.equals(newCustomSettings.scrollBarStyle))
       setScrollBarStyle(newCustomSettings.scrollBarStyle);
 
-    if (newSettingsMap.get("scrollBarDefaultDelayBeforeFade") != null && (customSettings.scrollBarDefaultDelayBeforeFade == null ||
+    if (newSettingsMap.get("scrollBarDefaultDelayBeforeFade") != null
+        && (customSettings.scrollBarDefaultDelayBeforeFade == null ||
             !customSettings.scrollBarDefaultDelayBeforeFade.equals(newCustomSettings.scrollBarDefaultDelayBeforeFade)))
       setScrollBarDefaultDelayBeforeFade(newCustomSettings.scrollBarDefaultDelayBeforeFade);
 
-    if (newSettingsMap.get("scrollbarFadingEnabled") != null && !customSettings.scrollbarFadingEnabled.equals(newCustomSettings.scrollbarFadingEnabled))
+    if (newSettingsMap.get("scrollbarFadingEnabled") != null
+        && !customSettings.scrollbarFadingEnabled.equals(newCustomSettings.scrollbarFadingEnabled))
       setScrollbarFadingEnabled(newCustomSettings.scrollbarFadingEnabled);
 
     if (newSettingsMap.get("scrollBarFadeDuration") != null && (customSettings.scrollBarFadeDuration == null ||
-            !customSettings.scrollBarFadeDuration.equals(newCustomSettings.scrollBarFadeDuration)))
+        !customSettings.scrollBarFadeDuration.equals(newCustomSettings.scrollBarFadeDuration)))
       setScrollBarFadeDuration(newCustomSettings.scrollBarFadeDuration);
 
-    if (newSettingsMap.get("verticalScrollbarPosition") != null && !customSettings.verticalScrollbarPosition.equals(newCustomSettings.verticalScrollbarPosition))
+    if (newSettingsMap.get("verticalScrollbarPosition") != null
+        && !customSettings.verticalScrollbarPosition.equals(newCustomSettings.verticalScrollbarPosition))
       setVerticalScrollbarPosition(newCustomSettings.verticalScrollbarPosition);
 
-    if (newSettingsMap.get("disableVerticalScroll") != null && customSettings.disableVerticalScroll != newCustomSettings.disableVerticalScroll)
-      setVerticalScrollBarEnabled(!newCustomSettings.disableVerticalScroll && newCustomSettings.verticalScrollBarEnabled);
+    if (newSettingsMap.get("disableVerticalScroll") != null
+        && customSettings.disableVerticalScroll != newCustomSettings.disableVerticalScroll)
+      setVerticalScrollBarEnabled(
+          !newCustomSettings.disableVerticalScroll && newCustomSettings.verticalScrollBarEnabled);
 
-    if (newSettingsMap.get("disableHorizontalScroll") != null && customSettings.disableHorizontalScroll != newCustomSettings.disableHorizontalScroll)
-      setHorizontalScrollBarEnabled(!newCustomSettings.disableHorizontalScroll && newCustomSettings.horizontalScrollBarEnabled);
+    if (newSettingsMap.get("disableHorizontalScroll") != null
+        && customSettings.disableHorizontalScroll != newCustomSettings.disableHorizontalScroll)
+      setHorizontalScrollBarEnabled(
+          !newCustomSettings.disableHorizontalScroll && newCustomSettings.horizontalScrollBarEnabled);
 
-    if (newSettingsMap.get("overScrollMode") != null && !customSettings.overScrollMode.equals(newCustomSettings.overScrollMode))
+    if (newSettingsMap.get("overScrollMode") != null
+        && !customSettings.overScrollMode.equals(newCustomSettings.overScrollMode))
       setOverScrollMode(newCustomSettings.overScrollMode);
 
-    if (newSettingsMap.get("networkAvailable") != null && customSettings.networkAvailable != newCustomSettings.networkAvailable)
+    if (newSettingsMap.get("networkAvailable") != null
+        && customSettings.networkAvailable != newCustomSettings.networkAvailable)
       setNetworkAvailable(newCustomSettings.networkAvailable);
 
     if (newSettingsMap.get("rendererPriorityPolicy") != null && (customSettings.rendererPriorityPolicy == null ||
-            (customSettings.rendererPriorityPolicy.get("rendererRequestedPriority") != newCustomSettings.rendererPriorityPolicy.get("rendererRequestedPriority") ||
-                    customSettings.rendererPriorityPolicy.get("waivedWhenNotVisible") != newCustomSettings.rendererPriorityPolicy.get("waivedWhenNotVisible"))) &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        (customSettings.rendererPriorityPolicy.get(
+            "rendererRequestedPriority") != newCustomSettings.rendererPriorityPolicy.get("rendererRequestedPriority") ||
+            customSettings.rendererPriorityPolicy
+                .get("waivedWhenNotVisible") != newCustomSettings.rendererPriorityPolicy.get("waivedWhenNotVisible")))
+        &&
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setRendererPriorityPolicy(
-              (int) newCustomSettings.rendererPriorityPolicy.get("rendererRequestedPriority"),
-              (boolean) newCustomSettings.rendererPriorityPolicy.get("waivedWhenNotVisible"));
+          (int) newCustomSettings.rendererPriorityPolicy.get("rendererRequestedPriority"),
+          (boolean) newCustomSettings.rendererPriorityPolicy.get("waivedWhenNotVisible"));
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      if (newSettingsMap.get("verticalScrollbarThumbColor") != null && !Util.objEquals(customSettings.verticalScrollbarThumbColor, newCustomSettings.verticalScrollbarThumbColor))
-        setVerticalScrollbarThumbDrawable(new ColorDrawable(Color.parseColor(newCustomSettings.verticalScrollbarThumbColor)));
+      if (newSettingsMap.get("verticalScrollbarThumbColor") != null
+          && !Util.objEquals(customSettings.verticalScrollbarThumbColor, newCustomSettings.verticalScrollbarThumbColor))
+        setVerticalScrollbarThumbDrawable(
+            new ColorDrawable(Color.parseColor(newCustomSettings.verticalScrollbarThumbColor)));
 
-      if (newSettingsMap.get("verticalScrollbarTrackColor") != null && !Util.objEquals(customSettings.verticalScrollbarTrackColor, newCustomSettings.verticalScrollbarTrackColor))
-        setVerticalScrollbarTrackDrawable(new ColorDrawable(Color.parseColor(newCustomSettings.verticalScrollbarTrackColor)));
+      if (newSettingsMap.get("verticalScrollbarTrackColor") != null
+          && !Util.objEquals(customSettings.verticalScrollbarTrackColor, newCustomSettings.verticalScrollbarTrackColor))
+        setVerticalScrollbarTrackDrawable(
+            new ColorDrawable(Color.parseColor(newCustomSettings.verticalScrollbarTrackColor)));
 
-      if (newSettingsMap.get("horizontalScrollbarThumbColor") != null && !Util.objEquals(customSettings.horizontalScrollbarThumbColor, newCustomSettings.horizontalScrollbarThumbColor))
-        setHorizontalScrollbarThumbDrawable(new ColorDrawable(Color.parseColor(newCustomSettings.horizontalScrollbarThumbColor)));
+      if (newSettingsMap.get("horizontalScrollbarThumbColor") != null && !Util
+          .objEquals(customSettings.horizontalScrollbarThumbColor, newCustomSettings.horizontalScrollbarThumbColor))
+        setHorizontalScrollbarThumbDrawable(
+            new ColorDrawable(Color.parseColor(newCustomSettings.horizontalScrollbarThumbColor)));
 
-      if (newSettingsMap.get("horizontalScrollbarTrackColor") != null && !Util.objEquals(customSettings.horizontalScrollbarTrackColor, newCustomSettings.horizontalScrollbarTrackColor))
-        setHorizontalScrollbarTrackDrawable(new ColorDrawable(Color.parseColor(newCustomSettings.horizontalScrollbarTrackColor)));
+      if (newSettingsMap.get("horizontalScrollbarTrackColor") != null && !Util
+          .objEquals(customSettings.horizontalScrollbarTrackColor, newCustomSettings.horizontalScrollbarTrackColor))
+        setHorizontalScrollbarTrackDrawable(
+            new ColorDrawable(Color.parseColor(newCustomSettings.horizontalScrollbarTrackColor)));
     }
 
-    if (newSettingsMap.get("disableDefaultErrorPage") != null &&
-            !Util.objEquals(customSettings.disableDefaultErrorPage, newCustomSettings.disableDefaultErrorPage) &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.SUPPRESS_ERROR_PAGE)) {
-      WebSettingsCompat.setWillSuppressErrorPage(settings, newCustomSettings.disableDefaultErrorPage);
-    }
     if (newSettingsMap.get("algorithmicDarkeningAllowed") != null &&
-            !Util.objEquals(customSettings.algorithmicDarkeningAllowed, newCustomSettings.algorithmicDarkeningAllowed) &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        !Util.objEquals(customSettings.algorithmicDarkeningAllowed, newCustomSettings.algorithmicDarkeningAllowed) &&
+        WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, newCustomSettings.algorithmicDarkeningAllowed);
     }
     if (newSettingsMap.get("enterpriseAuthenticationAppLinkPolicyEnabled") != null &&
-            !Util.objEquals(customSettings.enterpriseAuthenticationAppLinkPolicyEnabled, newCustomSettings.enterpriseAuthenticationAppLinkPolicyEnabled) &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.ENTERPRISE_AUTHENTICATION_APP_LINK_POLICY)) {
-      WebSettingsCompat.setEnterpriseAuthenticationAppLinkPolicyEnabled(settings, newCustomSettings.enterpriseAuthenticationAppLinkPolicyEnabled);
+        !Util.objEquals(customSettings.enterpriseAuthenticationAppLinkPolicyEnabled,
+            newCustomSettings.enterpriseAuthenticationAppLinkPolicyEnabled)
+        &&
+        WebViewFeature.isFeatureSupported(WebViewFeature.ENTERPRISE_AUTHENTICATION_APP_LINK_POLICY)) {
+      WebSettingsCompat.setEnterpriseAuthenticationAppLinkPolicyEnabled(settings,
+          newCustomSettings.enterpriseAuthenticationAppLinkPolicyEnabled);
     }
     if (newSettingsMap.get("requestedWithHeaderOriginAllowList") != null &&
-            !Util.objEquals(customSettings.requestedWithHeaderOriginAllowList, newCustomSettings.requestedWithHeaderOriginAllowList) &&
-            WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
-      WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, newCustomSettings.requestedWithHeaderOriginAllowList);
+        !Util.objEquals(customSettings.requestedWithHeaderOriginAllowList,
+            newCustomSettings.requestedWithHeaderOriginAllowList)
+        &&
+        WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
+      WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings,
+          newCustomSettings.requestedWithHeaderOriginAllowList);
     }
 
     if (plugin != null) {
@@ -1137,8 +1242,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   public void enablePluginScriptAtRuntime(final String flagVariable,
-                                          final boolean enable,
-                                          final PluginScript pluginScript) {
+      final boolean enable,
+      final PluginScript pluginScript) {
     evaluateJavascript("window." + flagVariable, null, new ValueCallback<String>() {
       @Override
       public void onReceiveValue(String value) {
@@ -1157,8 +1262,11 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     });
   }
 
-  public void injectDeferredObject(String source, @Nullable final ContentWorld contentWorld, String jsWrapper, @Nullable final ValueCallback<String> resultCallback) {
-    final String resultUuid = contentWorld != null && !contentWorld.equals(ContentWorld.PAGE) ? UUID.randomUUID().toString() : null;
+  public void injectDeferredObject(String source, @Nullable final ContentWorld contentWorld, String jsWrapper,
+      @Nullable final ValueCallback<String> resultCallback) {
+    final String resultUuid = contentWorld != null && !contentWorld.equals(ContentWorld.PAGE)
+        ? UUID.randomUUID().toString()
+        : null;
     String scriptToInject = source;
     if (jsWrapper != null) {
       org.json.JSONArray jsonEsc = new org.json.JSONArray();
@@ -1170,17 +1278,20 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (resultUuid != null && resultCallback != null) {
       evaluateJavaScriptContentWorldCallbacks.put(resultUuid, resultCallback);
       scriptToInject = Util.replaceAll(PluginScriptsUtil.EVALUATE_JAVASCRIPT_WITH_CONTENT_WORLD_WRAPPER_JS_SOURCE,
-              PluginScriptsUtil.VAR_RANDOM_NAME, "_" + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + "_" + Math.round(Math.random() * 1000000))
-              .replace(PluginScriptsUtil.VAR_PLACEHOLDER_VALUE, UserContentController.escapeCode(source))
-              .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid);
+          PluginScriptsUtil.VAR_RANDOM_NAME,
+          "_" + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + "_" + Math.round(Math.random() * 1000000))
+          .replace(PluginScriptsUtil.VAR_PLACEHOLDER_VALUE, UserContentController.escapeCode(source))
+          .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid);
     }
     final String finalScriptToInject = scriptToInject;
     mainLooperHandler.post(new Runnable() {
       @Override
       public void run() {
-        String scriptToInject = userContentController.generateCodeForScriptEvaluation(finalScriptToInject, contentWorld);
+        String scriptToInject = userContentController.generateCodeForScriptEvaluation(finalScriptToInject,
+            contentWorld);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-          // This action will have the side-effect of blurring the currently focused element
+          // This action will have the side-effect of blurring the currently focused
+          // element
           loadUrl("javascript:" + scriptToInject.replaceAll("[\r\n]+", ""));
           if (contentWorld != null && resultCallback != null) {
             resultCallback.onReceiveValue("");
@@ -1199,7 +1310,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     });
   }
 
-  public void evaluateJavascript(String source, @Nullable ContentWorld contentWorld, @Nullable ValueCallback<String> resultCallback) {
+  public void evaluateJavascript(String source, @Nullable ContentWorld contentWorld,
+      @Nullable ValueCallback<String> resultCallback) {
     injectDeferredObject(source, contentWorld, null, resultCallback);
   }
 
@@ -1215,15 +1327,17 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         String scriptIdEscaped = idAttr.replaceAll("'", "\\\\'");
         scriptAttributes += " script.id = '" + scriptIdEscaped + "'; ";
         scriptAttributes += " script.onload = function() {" +
-        "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
-        "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptLoaded', '" + scriptIdEscaped + "');" +
-        "  }" +
-        "};";
+            "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
+            "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptLoaded', '"
+            + scriptIdEscaped + "');" +
+            "  }" +
+            "};";
         scriptAttributes += " script.onerror = function() {" +
-        "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
-        "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptError', '" + scriptIdEscaped + "');" +
-        "  }" +
-        "};";
+            "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
+            "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptError', '"
+            + scriptIdEscaped + "');" +
+            "  }" +
+            "};";
       }
       Boolean asyncAttr = (Boolean) scriptHtmlTagAttributes.get("async");
       if (asyncAttr != null && asyncAttr) {
@@ -1255,13 +1369,13 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       }
     }
     String jsWrapper = "(function(d) { var script = d.createElement('script'); " + scriptAttributes +
-            " script.src = %s; if (d.body != null) { d.body.appendChild(script); } })(document);";
+        " script.src = %s; if (d.body != null) { d.body.appendChild(script); } })(document);";
     injectDeferredObject(urlFile, null, jsWrapper, null);
   }
 
   public void injectCSSCode(String source) {
     String jsWrapper = "(function(d) { var style = d.createElement('style'); style.innerHTML = %s;" +
-            " if (d.head != null) { d.head.appendChild(style); } })(document);";
+        " if (d.head != null) { d.head.appendChild(style); } })(document);";
     injectDeferredObject(source, null, jsWrapper, null);
   }
 
@@ -1302,8 +1416,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
         cssLinkAttributes += " link.title = '" + titleAttr.replaceAll("'", "\\\\'") + "'; ";
       }
     }
-    String jsWrapper = "(function(d) { var link = d.createElement('link'); link.rel='" + alternateStylesheet + "stylesheet'; link.type='text/css'; " +
-            cssLinkAttributes + " link.href = %s; if (d.head != null) { d.head.appendChild(link); } })(document);";
+    String jsWrapper = "(function(d) { var link = d.createElement('link'); link.rel='" + alternateStylesheet
+        + "stylesheet'; link.type='text/css'; " +
+        cssLinkAttributes + " link.href = %s; if (d.head != null) { d.head.appendChild(link); } })(document);";
     injectDeferredObject(urlFile, null, jsWrapper, null);
   }
 
@@ -1335,9 +1450,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
   @Override
   protected void onScrollChanged(int x,
-                                 int y,
-                                 int oldX,
-                                 int oldY) {
+      int y,
+      int oldX,
+      int oldY) {
     super.onScrollChanged(x, y, oldX, oldY);
 
     if (floatingContextMenu != null) {
@@ -1345,7 +1460,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       floatingContextMenu.setVisibility(View.GONE);
     }
 
-    if (channelDelegate != null) channelDelegate.onScrollChanged(x, y);
+    if (channelDelegate != null)
+      channelDelegate.onScrollChanged(x, y);
   }
 
   public void scrollTo(Integer x, Integer y, Boolean animated) {
@@ -1372,17 +1488,18 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
   class DownloadStartListener implements DownloadListener {
     @Override
-    public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+    public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType,
+        long contentLength) {
       DownloadStartRequest downloadStartRequest = new DownloadStartRequest(
-        url,
-        userAgent,
-        contentDisposition,
-        mimeType,
-        contentLength,
-        URLUtil.guessFileName(url, contentDisposition, mimeType),
-        null
-      );
-      if (channelDelegate != null) channelDelegate.onDownloadStartRequest(downloadStartRequest);
+          url,
+          userAgent,
+          contentDisposition,
+          mimeType,
+          contentLength,
+          URLUtil.guessFileName(url, contentDisposition, mimeType),
+          null);
+      if (channelDelegate != null)
+        channelDelegate.onDownloadStartRequest(downloadStartRequest);
     }
   }
 
@@ -1432,10 +1549,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
                 break;
             }
           }
-//          if (settings.margins != null) {
-//            // for some reason, Android doesn't set the margins
-//            builder.setMinMargins(settings.margins.toMargins());
-//          }
+          // if (settings.margins != null) {
+          // // for some reason, Android doesn't set the margins
+          // builder.setMinMargins(settings.margins.toMargins());
+          // }
           if (settings.mediaSize != null) {
             builder.setMediaSize(settings.mediaSize.toMediaSize());
           }
@@ -1481,9 +1598,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   private void sendOnCreateContextMenuEvent() {
-    com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult hitTestResult =
-            com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult.fromWebViewHitTestResult(getHitTestResult());
-    if (channelDelegate != null) channelDelegate.onCreateContextMenu(hitTestResult);
+    com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult hitTestResult = com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult
+        .fromWebViewHitTestResult(getHitTestResult());
+    if (channelDelegate != null)
+      channelDelegate.onCreateContextMenu(hitTestResult);
   }
 
   private Point contextMenuPoint = new Point(0, 0);
@@ -1514,7 +1632,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     ViewParent parent = getParent();
     if (parent instanceof PullToRefreshLayout && overScrolledVertically && scrollY <= 10) {
       PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) parent;
-      // change over scroll mode to OVER_SCROLL_NEVER in order to disable temporarily the glow effect
+      // change over scroll mode to OVER_SCROLL_NEVER in order to disable temporarily
+      // the glow effect
       setOverScrollMode(OVER_SCROLL_NEVER);
       pullToRefreshLayout.setEnabled(pullToRefreshLayout.settings.enabled);
       // reset over scroll mode
@@ -1522,7 +1641,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     if (overScrolledHorizontally || overScrolledVertically) {
-      if (channelDelegate != null) channelDelegate.onOverScrolled(scrollX, scrollY, overScrolledHorizontally, overScrolledVertically);
+      if (channelDelegate != null)
+        channelDelegate.onOverScrolled(scrollX, scrollY, overScrolledHorizontally, overScrolledVertically);
     }
   }
 
@@ -1538,37 +1658,37 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       // workaround to hide the Keyboard when the user click outside
       // on something not focusable such as input or a textarea.
       containerView
-              .getHandler()
-              .postDelayed(
-                      new Runnable() {
-                        @Override
-                        public void run() {
-                          InputMethodManager imm =
-                                  (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
+          .getHandler()
+          .postDelayed(
+              new Runnable() {
+                @Override
+                public void run() {
+                  InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
 
-                          boolean isAcceptingText = false;
-                          if (imm != null) {
-                            try {
-                              // imm.isAcceptingText() seems to sometimes crash on some devices
-                              isAcceptingText = imm.isAcceptingText();
-                            } catch (Exception ignored) {
-                            }
-                          }
+                  boolean isAcceptingText = false;
+                  if (imm != null) {
+                    try {
+                      // imm.isAcceptingText() seems to sometimes crash on some devices
+                      isAcceptingText = imm.isAcceptingText();
+                    } catch (Exception ignored) {
+                    }
+                  }
 
-                          if (containerView != null && imm != null && !isAcceptingText) {
-                            imm.hideSoftInputFromWindow(
-                                    containerView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                          }
-                        }
-                      },
-                      128);
+                  if (containerView != null && imm != null && !isAcceptingText) {
+                    imm.hideSoftInputFromWindow(
+                        containerView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                  }
+                }
+              },
+              128);
     }
     return connection;
   }
 
   @Override
   public ActionMode startActionMode(ActionMode.Callback callback) {
-    if (customSettings.useHybridComposition && !customSettings.disableContextMenu && (contextMenu == null || contextMenu.keySet().size() == 0)) {
+    if (customSettings.useHybridComposition && !customSettings.disableContextMenu
+        && (contextMenu == null || contextMenu.keySet().size() == 0)) {
       return super.startActionMode(callback);
     }
     return rebuildActionMode(super.startActionMode(callback), callback);
@@ -1577,17 +1697,18 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   @RequiresApi(api = Build.VERSION_CODES.M)
   @Override
   public ActionMode startActionMode(ActionMode.Callback callback, int type) {
-    if (customSettings.useHybridComposition && !customSettings.disableContextMenu && (contextMenu == null || contextMenu.keySet().size() == 0)) {
+    if (customSettings.useHybridComposition && !customSettings.disableContextMenu
+        && (contextMenu == null || contextMenu.keySet().size() == 0)) {
       return super.startActionMode(callback, type);
     }
     return rebuildActionMode(super.startActionMode(callback, type), callback);
   }
 
   public ActionMode rebuildActionMode(
-          final ActionMode actionMode,
-          final ActionMode.Callback callback
-  ) {
-    // fix Android 10 clipboard not working properly https://github.com/pichillilorenzo/flutter_inappwebview/issues/678
+      final ActionMode actionMode,
+      final ActionMode.Callback callback) {
+    // fix Android 10 clipboard not working properly
+    // https://github.com/pichillilorenzo/flutter_inappwebview/issues/678
     if (!customSettings.useHybridComposition && containerView != null) {
       onWindowFocusChanged(containerView.isFocused());
     }
@@ -1616,7 +1737,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     floatingContextMenu = (LinearLayout) LayoutInflater.from(this.getContext())
-            .inflate(R.layout.floating_action_mode, this, false);
+        .inflate(R.layout.floating_action_mode, this, false);
     HorizontalScrollView horizontalScrollView = (HorizontalScrollView) floatingContextMenu.getChildAt(0);
     LinearLayout menuItemListLayout = (LinearLayout) horizontalScrollView.getChildAt(0);
 
@@ -1631,13 +1752,14 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
     customMenuItems = customMenuItems == null ? new ArrayList<Map<String, Object>>() : customMenuItems;
 
-    if (contextMenuSettings.hideDefaultSystemContextMenuItems == null || !contextMenuSettings.hideDefaultSystemContextMenuItems) {
+    if (contextMenuSettings.hideDefaultSystemContextMenuItems == null
+        || !contextMenuSettings.hideDefaultSystemContextMenuItems) {
       for (final MenuItem menuItem : defaultMenuItems) {
         final int itemId = menuItem.getItemId();
         final String itemTitle = menuItem.getTitle().toString();
 
         TextView text = (TextView) LayoutInflater.from(this.getContext())
-                .inflate(R.layout.floating_action_mode_item, this, false);
+            .inflate(R.layout.floating_action_mode_item, this, false);
         text.setText(itemTitle);
         text.setOnClickListener(new View.OnClickListener() {
           @Override
@@ -1645,7 +1767,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
             hideContextMenu();
             callback.onActionItemClicked(actionMode, menuItem);
 
-            if (channelDelegate != null) channelDelegate.onContextMenuActionItemClicked(itemId, itemTitle);
+            if (channelDelegate != null)
+              channelDelegate.onContextMenuActionItemClicked(itemId, itemTitle);
           }
         });
         if (floatingContextMenu != null) {
@@ -1658,14 +1781,15 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       final int itemId = (int) menuItem.get("id");
       final String itemTitle = (String) menuItem.get("title");
       TextView text = (TextView) LayoutInflater.from(this.getContext())
-              .inflate(R.layout.floating_action_mode_item, this, false);
+          .inflate(R.layout.floating_action_mode_item, this, false);
       text.setText(itemTitle);
       text.setOnClickListener(new OnClickListener() {
         @Override
         public void onClick(View v) {
           hideContextMenu();
 
-          if (channelDelegate != null) channelDelegate.onContextMenuActionItemClicked(itemId, itemTitle);
+          if (channelDelegate != null)
+            channelDelegate.onContextMenuActionItemClicked(itemId, itemTitle);
         }
       });
       if (floatingContextMenu != null) {
@@ -1678,21 +1802,23 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     contextMenuPoint = new Point(x, y);
 
     if (floatingContextMenu != null) {
-      floatingContextMenu.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+      floatingContextMenu.getViewTreeObserver()
+          .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
-        @Override
-        public void onGlobalLayout() {
-          if (floatingContextMenu != null) {
-            floatingContextMenu.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            if (getSettings().getJavaScriptEnabled()) {
-              onScrollStopped();
-            } else {
-              onFloatingActionGlobalLayout(x, y);
+            @Override
+            public void onGlobalLayout() {
+              if (floatingContextMenu != null) {
+                floatingContextMenu.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (getSettings().getJavaScriptEnabled()) {
+                  onScrollStopped();
+                } else {
+                  onFloatingActionGlobalLayout(x, y);
+                }
+              }
             }
-          }
-        }
-      });
-      addView(floatingContextMenu, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, x, y));
+          });
+      addView(floatingContextMenu,
+          new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, x, y));
       if (hasBeenRemovedAndRebuilt) {
         sendOnCreateContextMenuEvent();
       }
@@ -1722,9 +1848,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     }
 
     updateViewLayout(
-            floatingContextMenu,
-            new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, curx + getScrollX(), ((int) cury) + getScrollY())
-    );
+        floatingContextMenu,
+        new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, curx + getScrollX(),
+            ((int) cury) + getScrollY()));
 
     mainLooperHandler.post(new Runnable() {
       @Override
@@ -1741,7 +1867,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     removeView(floatingContextMenu);
     floatingContextMenu = null;
 
-    if (channelDelegate != null) channelDelegate.onHideContextMenu();
+    if (channelDelegate != null)
+      channelDelegate.onHideContextMenu();
   }
 
   public void onScrollStopped() {
@@ -1753,36 +1880,38 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void adjustFloatingContextMenuPosition() {
     evaluateJavascript("(function(){" +
-            "  var selection = window.getSelection();" +
-            "  var rangeY = null;" +
-            "  if (selection != null && selection.rangeCount > 0) {" +
-            "    var range = selection.getRangeAt(0);" +
-            "    var clientRect = range.getClientRects();" +
-            "    if (clientRect.length > 0) {" +
-            "      rangeY = clientRect[0].y;" +
-            "    } else if (document.activeElement != null && document.activeElement.tagName.toLowerCase() !== 'iframe') {" +
-            "      var boundingClientRect = document.activeElement.getBoundingClientRect();" +
-            "      rangeY = boundingClientRect.y;" +
-            "    }" +
-            "  }" +
-            "  return rangeY;" +
-            "})();", new ValueCallback<String>() {
-      @Override
-      public void onReceiveValue(String value) {
-        if (floatingContextMenu != null) {
-          if (value != null && !value.equalsIgnoreCase("null")) {
-            int x = contextMenuPoint.x;
-            int y = (int) ((Float.parseFloat(value) * Util.getPixelDensity(getContext())) + (floatingContextMenu.getHeight() / 3.5));
-            contextMenuPoint.y = y;
-            onFloatingActionGlobalLayout(x, y);
-          } else {
-            floatingContextMenu.setVisibility(View.VISIBLE);
-            floatingContextMenu.animate().alpha(1f).setDuration(100).setListener(null);
-            onFloatingActionGlobalLayout(contextMenuPoint.x, contextMenuPoint.y);
+        "  var selection = window.getSelection();" +
+        "  var rangeY = null;" +
+        "  if (selection != null && selection.rangeCount > 0) {" +
+        "    var range = selection.getRangeAt(0);" +
+        "    var clientRect = range.getClientRects();" +
+        "    if (clientRect.length > 0) {" +
+        "      rangeY = clientRect[0].y;" +
+        "    } else if (document.activeElement != null && document.activeElement.tagName.toLowerCase() !== 'iframe') {"
+        +
+        "      var boundingClientRect = document.activeElement.getBoundingClientRect();" +
+        "      rangeY = boundingClientRect.y;" +
+        "    }" +
+        "  }" +
+        "  return rangeY;" +
+        "})();", new ValueCallback<String>() {
+          @Override
+          public void onReceiveValue(String value) {
+            if (floatingContextMenu != null) {
+              if (value != null && !value.equalsIgnoreCase("null")) {
+                int x = contextMenuPoint.x;
+                int y = (int) ((Float.parseFloat(value) * Util.getPixelDensity(getContext()))
+                    + (floatingContextMenu.getHeight() / 3.5));
+                contextMenuPoint.y = y;
+                onFloatingActionGlobalLayout(x, y);
+              } else {
+                floatingContextMenu.setVisibility(View.VISIBLE);
+                floatingContextMenu.animate().alpha(1f).setDuration(100).setListener(null);
+                onFloatingActionGlobalLayout(contextMenuPoint.x, contextMenuPoint.y);
+              }
+            }
           }
-        }
-      }
-    });
+        });
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -1821,7 +1950,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  public void callAsyncJavaScript(String functionBody, Map<String, Object> arguments, @Nullable ContentWorld contentWorld, @Nullable ValueCallback<String> resultCallback) {
+  public void callAsyncJavaScript(String functionBody, Map<String, Object> arguments,
+      @Nullable ContentWorld contentWorld, @Nullable ValueCallback<String> resultCallback) {
     String resultUuid = UUID.randomUUID().toString();
     if (resultCallback != null) {
       callAsyncJavaScriptCallbacks.put(resultUuid, resultCallback);
@@ -1843,12 +1973,12 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     String functionArgumentsObj = Util.JSONStringify(arguments);
 
     String sourceToInject = PluginScriptsUtil.CALL_ASYNC_JAVA_SCRIPT_WRAPPER_JS_SOURCE
-            .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENT_NAMES, functionArgumentNames)
-            .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENT_VALUES, functionArgumentValues)
-            .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENTS_OBJ, functionArgumentsObj)
-            .replace(PluginScriptsUtil.VAR_FUNCTION_BODY, functionBody)
-            .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid)
-            .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid);
+        .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENT_NAMES, functionArgumentNames)
+        .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENT_VALUES, functionArgumentValues)
+        .replace(PluginScriptsUtil.VAR_FUNCTION_ARGUMENTS_OBJ, functionArgumentsObj)
+        .replace(PluginScriptsUtil.VAR_FUNCTION_BODY, functionBody)
+        .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid)
+        .replace(PluginScriptsUtil.VAR_RESULT_UUID, resultUuid);
 
     sourceToInject = userContentController.generateCodeForScriptEvaluation(sourceToInject, contentWorld);
     evaluateJavascript(sourceToInject, null);
@@ -1860,7 +1990,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
       @Override
       public void onReceiveValue(String value) {
         if (value == null || value.isEmpty() || value.equalsIgnoreCase("null")
-                || value.equalsIgnoreCase("false")) {
+            || value.equalsIgnoreCase("false")) {
           resultCallback.onReceiveValue(false);
           return;
         }
@@ -1893,7 +2023,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
 
   public void addWebMessageListener(@NonNull WebMessageListener webMessageListener) throws Exception {
     if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-      WebViewCompat.addWebMessageListener(this, webMessageListener.jsObjectName, webMessageListener.allowedOriginRules, webMessageListener.listener);
+      WebViewCompat.addWebMessageListener(this, webMessageListener.jsObjectName, webMessageListener.allowedOriginRules,
+          webMessageListener.listener);
       webMessageListeners.add(webMessageListener);
     }
   }
@@ -1931,7 +2062,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   @Override
-  public void postWebMessage(com.pichillilorenzo.flutter_inappwebview_android.types.WebMessage message, Uri targetOrigin, ValueCallback<String> callback) throws Exception {
+  public void postWebMessage(com.pichillilorenzo.flutter_inappwebview_android.types.WebMessage message,
+      Uri targetOrigin, ValueCallback<String> callback) throws Exception {
     throw new UnsupportedOperationException();
   }
 
@@ -2017,8 +2149,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   @Override
-  public void getHitTestResult(ValueCallback<com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult> callback) {
-    callback.onReceiveValue(com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult.fromWebViewHitTestResult(getHitTestResult()));
+  public void getHitTestResult(
+      ValueCallback<com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult> callback) {
+    callback.onReceiveValue(com.pichillilorenzo.flutter_inappwebview_android.types.HitTestResult
+        .fromWebViewHitTestResult(getHitTestResult()));
   }
 
   @Nullable
@@ -2042,7 +2176,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     WebSettings settings = getSettings();
     settings.setJavaScriptEnabled(false);
     removeJavascriptInterface(JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {
       WebViewCompat.setWebViewRenderProcessClient(this, null);
     }
     setWebChromeClient(new WebChromeClient());
